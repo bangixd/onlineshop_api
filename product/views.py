@@ -45,6 +45,20 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not cart or not cart.items.exists():
             return Response({"detail": "سبد خرید شما خالی است."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # بررسی موجودی محصولات
+        for item in cart.items.all():
+            if item.quantity > item.product.inventory:
+                return Response(
+                    {"detail": f"موجودی محصول '{item.product.name}' کافی نیست."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         order = serializer.save(user=self.request.user)
         order.calculate_total_price()
-        cart.items.all().delete()
+
+        # کاهش موجودی محصولات و خالی کردن سبد خرید
+        for item in cart.items.all():
+            item.product.inventory -= item.quantity
+            item.product.save()
+
+        cart.items.all().delete()  # خالی کردن سبد خرید
