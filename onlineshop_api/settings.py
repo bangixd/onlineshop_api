@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     'drf_yasg',
 
     # MY APP
+    'accounts.apps.AccountsConfig',
+
 ]
 
 MIDDLEWARE = [
